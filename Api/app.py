@@ -18,7 +18,6 @@ import os
 
 
 app = Flask(__name__)
-salt = "salt"
 os.environ['PYTHONHASHSEED'] = '0'
 
 
@@ -86,7 +85,7 @@ def sign_up():
     req = json.loads(request.data)
     with get_session() as session:
         user_crud = UserCrud(session)
-        user_crud.create_user(login=req["login"], password=hash(req["password"] + salt))
+        user_crud.create_user(login=req["login"], password=hash(req["password"] + os.getenv("SALT")))
         return make_response({"err_code": 0}, 200)
 
 
