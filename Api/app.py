@@ -40,6 +40,7 @@ def update_token():
                 user.token = generate_token()
                 user.exp_token = datetime.now() + timedelta(minutes=15)
                 user.exp_refresh = datetime.now() + timedelta(minutes=120)
+                session.commit()
                 return make_response({"err_code": 0, "token": user.token}, 200)
         return make_response({"err_code": 1, "token": ""}, 401)
 

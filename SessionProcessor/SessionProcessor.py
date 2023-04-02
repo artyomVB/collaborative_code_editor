@@ -2,6 +2,7 @@ import websockets
 import asyncio
 import json
 import sqlalchemy
+from aio_pika import connect, Message, ExchangeType
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.future import select
@@ -27,13 +28,16 @@ class SessionProcessor:
         self.active_sessions = {}
         self.users_to_sessions = {}
         self.async_session = None
-        rabbit_settings = RabbitSettings()
-        credentials = pika.PlainCredentials(rabbit_settings.login, rabbit_settings.password)
-        self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host=rabbit_settings.host, port=rabbit_settings.port, credentials=credentials)
-        )
-        self.channel = self.connection.channel()
+        self.connection = None
+        self.channel = None
         self.exchanges = set()
+
+    async def set_up(self):
+        rabbit_settings = RabbitSettings()
+        self.connection = await connect(
+            f"amqp://{rabbit_settings.login}:{rabbit_settings.password}@{rabbit_settings.host}/"
+        )
+        self.channel = await self.connection.channel()
 
     async def process(self, websocket):
         while True:
@@ -46,7 +50,7 @@ class SessionProcessor:
                 self.users_to_sessions[data["uid"]] = data["sid"]
                 self.active_sessions[data["sid"]] = self.active_sessions.get(data["sid"], set())
                 self.active_sessions[data["sid"]].add(data["uid"])
-                self.channel.exchange_declare(exchange=str(data["sid"]), exchange_type='fanout')
+                await self.channel.declare_exchange(str(data["sid"]), ExchangeType.FANOUT)
             elif data["type"] == "exit_session":
                 sid = self.users_to_sessions[data["uid"]]
                 async with self.async_session() as session, session.begin():
@@ -66,12 +70,14 @@ class SessionProcessor:
                     res = res.one()
                     res[0].text = data["text"]
                     session.add(res[0])
-                self.channel.basic_publish(exchange=str(data["sid"]), routing_key='', body=msg)
+                exch = await self.channel.get_exchange(name=str(data["sid"]))
+                await exch.publish(routing_key='', message=Message(msg.encode("utf-8")))
                 for user in self.active_sessions[data["sid"]]:
                     if self.users_to_ws[user] != websocket:
                         await self.users_to_ws[user].send(json.dumps(data["event"]))
 
     async def run(self):
+        await self.set_up()
         db_settings = DBSettings()
         engine = create_async_engine(
             f"postgresql+asyncpg://{db_settings.login}:{db_settings.password}@{db_settings.host}/{db_settings.name}"
