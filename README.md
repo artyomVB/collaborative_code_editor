@@ -9,7 +9,7 @@ docker-compose up
 
 Использованные технологии: python 3.9, Flask, websockets, RabbitMQ, PostgreSQL, JS/HTML.
 
-Демо: TODO
+Демо: https://drive.google.com/file/d/1ssnm3NEDSDhFcntafyG-5oVtpatZjWua/view?usp=sharing
 
 # Об API
 
