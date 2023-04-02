@@ -1,0 +1,31 @@
+<p>Your sessions</p>
+
+<div>
+{% for session in available_sessions %}
+
+<button type="submit" onclick="getSession({{  "\'" + session['id'] + "\'"  }}, false)">
+    {{ session['name'] }}
+</button>
+
+{% endfor %}
+</div>
+<div>
+    <p>Enter session id:</p>
+    <input type="text" name="session_id" value="" id="sid"><br>
+    <button type="submit" onclick="getSession(document.getElementById('sid').value, false)">OK!</button>
+</div>
+<div>
+    <p>Enter session id: (READ ONLY)</p>
+    <input type="text" name="session_id" value="" id="sid_ro"><br>
+    <button type="submit" onclick="getSession(document.getElementById('sid_ro').value, true)">OK!</button>
+</div>
+<div>
+    <p>Create new session</p>
+    <input type="text" id="create"><br>
+    <button type="submit" onclick="createSession()">OK!</button>
+</div>
+<div>
+    <p>Replay session</p>
+    <input type="text" id="replay"><br>
+    <button type="submit" onclick="getReplay(document.getElementById('replay').value)">OK!</button>
+</div>

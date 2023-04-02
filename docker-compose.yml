@@ -1,0 +1,47 @@
+version: "3"
+services:
+  rabbit:
+    image: rabbitmq:3
+    ports:
+      - 5672:5672
+    environment:
+      - RABBITMQ_DEFAULT_USER=user 
+      - RABBITMQ_DEFAULT_PASS=password
+    healthcheck:
+      test: ["CMD", "true"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  db:
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=root
+    healthcheck:
+      test: ["CMD", "psql", "-U", "postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  service:
+    build: ./ 
+    environment:
+      - RABBIT_HOST=rabbit
+      - RABBIT_PASSWORD=password
+      - RABBIT_PORT=5672
+      - RABBIT_LOGIN=user
+      - DB_HOST=db
+      - DB_LOGIN=postgres
+      - DB_NAME=test
+      - DB_PASSWORD=root
+      - DB_PORT=5432
+    ports:
+      - 5000:5000
+      - 8080:8080
+      - 8081:8081
+    command: bash -c 'cd Api && python3 setup_db.py && (python3 app.py &) && cd ../SessionProcessor && (python3 SessionProcessor.py &) && (python3 SessionProcessorRO.py)'
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbit:
+        condition: service_healthy
