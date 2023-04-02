@@ -6,7 +6,6 @@ from aio_pika import connect, Message, ExchangeType
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.future import select
-import pika
 
 import sys
 
