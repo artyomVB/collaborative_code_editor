@@ -31,14 +31,14 @@ docker-compose up
 ### POST
 Добавляет новую сессию, выдает пользователю ее идентефикатор.
 
-## /sessions/<session_id>
+## /sessions/{session_id}
 Заходит в конкретную сессию
 
-## /sessions/<session_id>/shortid
+## /sessions/{session_id}/shortid
 Выдает удобный короткий id для сессии, протухает спутя 7 дней неиспользования сессии
 
-## /sessions/<session_id>/replay
+## /sessions/{session_id}/replay
 Позволяет проиграть по шагам одну сессию
 
-## /sessions/<session_id>/replay/<step>
+## /sessions/{session_id}/replay/{step}
 Производит конкретный шаг во время повтора сессии
